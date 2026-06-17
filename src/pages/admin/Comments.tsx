@@ -1,52 +1,39 @@
 import { useEffect, useState } from 'react';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Trash2, Loader2, MessageSquare, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { api, commentService, type Comment } from '../../services/api';
 
+type EnrichedComment = Comment & { article_title?: string; article_id: number };
+
 export const Comments = () => {
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<EnrichedComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
 
-  useEffect(() => {
-    // L'API ne fournit pas d'endpoint GET /comments dédié,
-    // on récupère les commentaires via les articles
-    fetchComments();
-  }, []);
+  useEffect(() => { fetchComments(); }, []);
 
   const fetchComments = async () => {
     setLoading(true);
     try {
-      // On récupère tous les articles et on agrège leurs commentaires
       const { data: articlesData } = await api.get('/articles?per_page=100');
       const articles = articlesData.data || [];
+      const allComments: EnrichedComment[] = [];
 
-      const allComments: (Comment & { article_title?: string })[] = [];
-      // Pour chaque article, charger ses commentaires via le détail
       await Promise.all(
         articles.map(async (article: any) => {
           try {
             const { data } = await api.get(`/articles/${article.id}`);
-            const articleComments = (data.comments || []).map((c: Comment) => ({
-              ...c,
-              article_title: data.title,
-            }));
-            allComments.push(...articleComments);
-          } catch {
-            // Ignore les erreurs individuelles
-          }
+            (data.comments || []).forEach((c: Comment) => {
+              allComments.push({ ...c, article_title: data.title, article_id: article.id });
+            });
+          } catch { /* ignore */ }
         })
       );
 
-      // Trier par date décroissante
-      allComments.sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      allComments.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setComments(allComments);
-    } catch (err) {
-      console.error('Erreur chargement commentaires:', err);
-    } finally {
-      setLoading(false);
-    }
+    } catch { /* ignore */ }
+    finally { setLoading(false); }
   };
 
   const handleDelete = async (id: number) => {
@@ -54,7 +41,7 @@ export const Comments = () => {
     setDeleting(id);
     try {
       await commentService.delete(id);
-      setComments((prev) => prev.filter((c) => c.id !== id));
+      setComments(prev => prev.filter(c => c.id !== id));
     } catch {
       alert('Impossible de supprimer ce commentaire.');
     } finally {
@@ -62,81 +49,75 @@ export const Comments = () => {
     }
   };
 
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const timeAgo = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `Il y a ${mins} min`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `Il y a ${hours}h`;
+    return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-2xl font-bold text-on-surface">Gestion des Commentaires</h1>
-        <p className="text-on-surface-variant text-sm mt-1">Modérez les interactions des visiteurs.</p>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <p className="text-gray-500 text-sm">{comments.length} commentaire{comments.length > 1 ? 's' : ''} au total</p>
 
-      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="w-7 h-7 animate-spin text-primary" />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-surface-container-low text-on-surface-variant font-medium border-b border-outline-variant">
-                <tr>
-                  <th className="px-6 py-4 w-[220px]">Visiteur</th>
-                  <th className="px-6 py-4">Message</th>
-                  <th className="px-6 py-4 whitespace-nowrap hidden md:table-cell">Article associé</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant text-on-surface">
-                {comments.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-on-surface-variant">
-                      Aucun commentaire pour le moment.
-                    </td>
-                  </tr>
-                )}
-                {comments.map((comment: any) => (
-                  <tr key={comment.id} className="hover:bg-surface-container-low transition-colors align-top">
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-on-surface">{comment.visitor_name}</p>
-                      <p className="text-xs text-on-surface-variant mt-0.5">{comment.visitor_email}</p>
-                      <p className="text-xs text-on-surface-variant mt-2 opacity-70">
-                        {formatDate(comment.created_at)}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4 text-on-surface-variant leading-relaxed max-w-[400px]">
-                      {comment.message}
-                    </td>
-                    <td className="px-6 py-4 text-primary font-medium text-xs underline underline-offset-2 cursor-pointer truncate max-w-[200px] hidden md:table-cell">
-                      {comment.article_title || `Article #${comment.article_id}`}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDelete(comment.id)}
-                        disabled={deleting === comment.id}
-                        className="p-2 text-outline hover:text-error hover:bg-error-container/20 rounded-md transition-colors disabled:opacity-50"
-                      >
-                        {deleting === comment.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="w-7 h-7 animate-spin text-primary" />
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-20 flex flex-col items-center gap-3">
+          <MessageSquare className="w-10 h-10 text-gray-200" />
+          <p className="text-gray-400 text-sm">Aucun commentaire pour le moment.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {comments.map((comment) => (
+            <div
+              key={comment.id}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex gap-4 hover:shadow-md transition-shadow"
+            >
+              {/* Avatar */}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold uppercase shrink-0">
+                {comment.visitor_name?.[0] || '?'}
+              </div>
+
+              {/* Contenu */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{comment.visitor_name}</p>
+                    <p className="text-xs text-gray-400">{comment.visitor_email} · {timeAgo(comment.created_at)}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(comment.id)}
+                    disabled={deleting === comment.id}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 disabled:opacity-40"
+                  >
+                    {deleting === comment.id
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      : <Trash2 className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+
+                <p className="text-sm text-gray-700 mt-2 leading-relaxed">{comment.message}</p>
+
+                {/* Article associé */}
+                <div className="mt-3 pt-3 border-t border-gray-50">
+                  <Link
+                    to={`/article/${comment.article_id}`}
+                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    {comment.article_title || `Article #${comment.article_id}`}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

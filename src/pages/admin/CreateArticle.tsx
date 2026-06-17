@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
+import { Save, ArrowLeft, Image as ImageIcon, Loader2, X, Bold, Italic, Heading1, Heading2 } from 'lucide-react';
 import { articleService, api } from '../../services/api';
 
-interface Category {
-  id: number;
-  name: string;
-}
+interface Category { id: number; name: string; }
 
 export const CreateArticle = () => {
   const navigate = useNavigate();
@@ -20,25 +15,18 @@ export const CreateArticle = () => {
   const [categoryId, setCategoryId] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Charger les catégories depuis les articles existants
   useEffect(() => {
-    api
-      .get('/articles?per_page=100')
-      .then(({ data }) => {
-        const cats = new Map<number, string>();
-        (data.data || []).forEach((a: any) => {
-          if (a.category?.id) {
-            cats.set(a.category.id, a.category.name);
-          }
-        });
-        setCategories(Array.from(cats, ([id, name]) => ({ id, name })));
-      })
-      .catch(() => {});
+    api.get('/articles?per_page=100').then(({ data }) => {
+      const cats = new Map<number, string>();
+      (data.data || []).forEach((a: any) => {
+        if (a.category?.id) cats.set(a.category.id, a.category.name);
+      });
+      setCategories(Array.from(cats, ([id, name]) => ({ id, name })));
+    }).catch(() => {});
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,204 +36,176 @@ export const CreateArticle = () => {
     setImagePreview(URL.createObjectURL(file));
   };
 
-  const buildFormData = () => {
-    const fd = new FormData();
-    fd.append('title', title);
-    fd.append('short_description', shortDescription);
-    fd.append('content', content);
-    fd.append('category_id', categoryId);
-    if (imageFile) fd.append('image', imageFile);
-    return fd;
-  };
-
-  const handleSubmit = async (status: 'publish' | 'draft') => {
+  const handleSubmit = async () => {
     setError('');
     if (!title.trim() || !shortDescription.trim() || !content.trim() || !categoryId) {
-      setError('Tous les champs sont obligatoires.');
+      setError('Veuillez remplir tous les champs obligatoires.');
       return;
     }
     setLoading(true);
     try {
-      await articleService.create(buildFormData());
+      const fd = new FormData();
+      fd.append('title', title);
+      fd.append('short_description', shortDescription);
+      fd.append('content', content);
+      fd.append('category_id', categoryId);
+      if (imageFile) fd.append('image', imageFile);
+      await articleService.create(fd);
       navigate('/admin/articles');
     } catch (err: any) {
       const apiErrors = err?.response?.data?.errors;
-      if (apiErrors) {
-        setError(Object.values(apiErrors).flat().join(' '));
-      } else {
-        setError(err?.response?.data?.message || "Erreur lors de la création de l'article.");
-      }
+      setError(apiErrors ? Object.values(apiErrors).flat().join(' ') : err?.response?.data?.message || "Erreur lors de la création.");
     } finally {
       setLoading(false);
     }
   };
 
+  const insertMarkdown = (syntax: string) => setContent(c => c + syntax);
+
   return (
-    <div className="space-y-6 max-w-[1000px] animate-in fade-in duration-500">
+    <div className="max-w-4xl animate-in fade-in duration-300">
+
+      {/* En-tête */}
       <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors text-sm font-medium"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Retour
+        </button>
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-on-surface-variant" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-on-surface">Créer un article</h1>
-            <p className="text-on-surface-variant text-sm mt-1">Rédigez et publiez votre contenu.</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            className="gap-2 hidden sm:flex"
-            onClick={() => handleSubmit('draft')}
+            onClick={handleSubmit}
             disabled={loading}
+            className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/90 transition-all shadow-sm shadow-primary/20 disabled:opacity-60 active:scale-95"
           >
-            Brouillon
-          </Button>
-          <Button className="gap-2" onClick={() => handleSubmit('publish')} disabled={loading}>
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Publier
-          </Button>
+            Publier l'article
+          </button>
         </div>
       </div>
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+        <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-6">
+          <X className="w-4 h-4 shrink-0" />
           {error}
-        </p>
+        </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-6">
-            <Input
-              label="Titre de l'article"
-              placeholder="Ex. Les meilleures pratiques React..."
-              className="text-lg font-semibold"
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Colonne principale */}
+        <div className="lg:col-span-2 space-y-5">
+
+          {/* Titre */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <input
+              type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              placeholder="Titre de l'article..."
+              className="w-full text-2xl font-bold text-gray-900 placeholder:text-gray-300 outline-none border-none bg-transparent"
             />
+          </div>
 
-            <div className="space-y-2">
-              <label className="font-label-md text-on-surface-variant ml-1 block">Description courte</label>
-              <textarea
-                rows={3}
-                value={shortDescription}
-                onChange={(e) => setShortDescription(e.target.value)}
-                className="w-full rounded-lg bg-surface-container-lowest border border-outline-variant py-3 px-4 text-sm transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none"
-                placeholder="Un court résumé affiché dans les cartes d'articles..."
-              />
-            </div>
+          {/* Description */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Description courte *</label>
+            <textarea
+              rows={3}
+              value={shortDescription}
+              onChange={(e) => setShortDescription(e.target.value)}
+              placeholder="Un résumé accrocheur affiché sur les cartes d'articles..."
+              className="w-full text-sm text-gray-700 placeholder:text-gray-300 outline-none border-none bg-transparent resize-none leading-relaxed"
+            />
+          </div>
 
-            <div className="space-y-2">
-              <label className="font-label-md text-on-surface-variant ml-1 block">Contenu principal</label>
-              <div className="border border-outline-variant rounded-lg overflow-hidden flex flex-col h-[400px]">
-                <div className="bg-surface-container p-2 flex gap-2 border-b border-outline-variant">
-                  <button
-                    type="button"
-                    onClick={() => setContent((c) => c + '**texte en gras**')}
-                    className="p-1 hover:bg-surface-container-high rounded"
-                  >
-                    <span className="font-bold px-2">B</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setContent((c) => c + '*texte italique*')}
-                    className="p-1 hover:bg-surface-container-high rounded"
-                  >
-                    <span className="italic px-2">I</span>
-                  </button>
-                  <div className="w-px bg-outline-variant mx-1" />
-                  <button
-                    type="button"
-                    onClick={() => setContent((c) => c + '\n# Titre\n')}
-                    className="p-1 hover:bg-surface-container-high rounded"
-                  >
-                    <span className="px-2 font-mono text-sm">H1</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setContent((c) => c + '\n## Sous-titre\n')}
-                    className="p-1 hover:bg-surface-container-high rounded"
-                  >
-                    <span className="px-2 font-mono text-sm">H2</span>
-                  </button>
-                </div>
-                <textarea
-                  className="w-full flex-1 p-4 bg-surface-container-lowest resize-none outline-none text-sm leading-relaxed"
-                  placeholder="Commencez à écrire ici..."
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                />
-              </div>
+          {/* Éditeur de contenu */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            {/* Barre d'outils */}
+            <div className="flex items-center gap-1 px-4 py-3 border-b border-gray-100 bg-gray-50/80">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-2">Contenu</span>
+              {[
+                { icon: Bold,     label: 'Gras',       syntax: '**texte**' },
+                { icon: Italic,   label: 'Italique',   syntax: '*texte*' },
+                { icon: Heading1, label: 'Titre H1',   syntax: '\n# Titre\n' },
+                { icon: Heading2, label: 'Titre H2',   syntax: '\n## Titre\n' },
+              ].map(({ icon: Icon, label, syntax }) => (
+                <button
+                  key={label}
+                  type="button"
+                  title={label}
+                  onClick={() => insertMarkdown(syntax)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-200 transition-colors"
+                >
+                  <Icon className="w-4 h-4" />
+                </button>
+              ))}
             </div>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Rédigez votre article ici..."
+              className="w-full min-h-[400px] p-6 text-sm text-gray-700 placeholder:text-gray-300 outline-none border-none bg-transparent resize-y leading-relaxed"
+            />
           </div>
         </div>
 
-        <div className="space-y-6">
+        {/* Colonne latérale */}
+        <div className="space-y-5">
+
+          {/* Catégorie */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Catégorie *</label>
+            <select
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="w-full py-2.5 px-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/30 transition-all appearance-none"
+            >
+              <option value="">Choisir une catégorie</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Image de couverture */}
-          <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm">
-            <h3 className="font-semibold text-on-surface mb-4">Image de couverture</h3>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Image de couverture</label>
             <input
               type="file"
-              accept="image/jpeg,image/png,image/jpg,image/gif"
+              accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
               ref={fileInputRef}
               onChange={handleImageChange}
               className="hidden"
             />
             {imagePreview ? (
-              <div className="relative">
-                <img
-                  src={imagePreview}
-                  alt="Aperçu"
-                  className="w-full aspect-[16/10] object-cover rounded-xl"
-                />
+              <div className="relative rounded-xl overflow-hidden">
+                <img src={imagePreview} alt="Aperçu" className="w-full aspect-video object-cover" />
                 <button
                   type="button"
-                  onClick={() => {
-                    setImageFile(null);
-                    setImagePreview(null);
-                  }}
-                  className="absolute top-2 right-2 bg-error text-white text-xs px-2 py-1 rounded-md"
+                  onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition-colors"
                 >
-                  Supprimer
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-surface-container-low transition-colors group w-full"
+                className="w-full aspect-video border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-primary/40 hover:text-primary hover:bg-blue-50/30 transition-all group"
               >
-                <div className="w-12 h-12 bg-surface-container-high rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                  <ImageIcon className="w-6 h-6 text-on-surface-variant" />
+                <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                  <ImageIcon className="w-5 h-5" />
                 </div>
-                <p className="text-sm font-semibold text-on-surface mb-1">Glissez-déposez votre image</p>
-                <p className="text-xs text-on-surface-variant">PNG, JPG, WEBP (Max 2MB)</p>
+                <div className="text-center">
+                  <p className="text-xs font-semibold">Cliquer pour uploader</p>
+                  <p className="text-[10px] text-gray-300 mt-0.5">PNG, JPG, WEBP — max 2MB</p>
+                </div>
               </button>
             )}
-          </div>
-
-          {/* Paramètres */}
-          <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm space-y-4">
-            <h3 className="font-semibold text-on-surface">Paramètres</h3>
-            <div className="space-y-2">
-              <label className="font-label-sm text-on-surface-variant ml-1 block">Catégorie</label>
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-lg border border-outline-variant py-2.5 px-4 text-sm bg-surface-container-lowest outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
-              >
-                <option value="">Sélectionner une catégorie</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
         </div>
       </div>

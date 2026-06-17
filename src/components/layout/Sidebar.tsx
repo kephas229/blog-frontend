@@ -1,77 +1,111 @@
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, TrendingUp, MessageSquare, Image as ImageIcon, Settings, HelpCircle, LogOut } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard, FileText, TrendingUp, MessageSquare,
+  Settings, LogOut, PenSquare, ChevronRight, Globe
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
 
+const navLinks = [
+  { name: 'Tableau de bord', path: '/admin/dashboard', icon: LayoutDashboard },
+  { name: 'Articles',        path: '/admin/articles',  icon: FileText },
+  { name: 'Commentaires',    path: '/admin/comments',  icon: MessageSquare },
+  { name: 'Analytiques',     path: '/admin/analytics', icon: TrendingUp },
+  { name: 'Paramètres',      path: '/admin/settings',  icon: Settings },
+];
+
 export const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
-  
-  const links = [
-    { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { name: 'All Posts', path: '/admin/articles', icon: FileText },
-    { name: 'Analytics', path: '/admin/analytics', icon: TrendingUp },
-    { name: 'Comments', path: '/admin/comments', icon: MessageSquare },
-    { name: 'Media', path: '/admin/media', icon: ImageIcon },
-    { name: 'Settings', path: '/admin/settings', icon: Settings },
-  ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[260px] bg-surface-container-low border-r border-outline-variant flex flex-col py-6 gap-2 z-50">
-      <div className="px-4 mb-10">
-        <h1 className="text-xl font-bold text-on-surface">Editorial Hub</h1>
-        <p className="text-sm text-on-surface-variant opacity-70">Premium Plan</p>
+    <aside className="fixed left-0 top-0 h-screen w-[260px] flex flex-col z-50 bg-[#0f172a] text-white">
+
+      {/* Logo */}
+      <div className="px-6 pt-7 pb-6 border-b border-white/10">
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+            <PenSquare className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-lg font-bold tracking-tight">BlogFlow</span>
+        </Link>
+        <p className="text-xs text-white/40 mt-1 ml-[42px]">Espace administration</p>
       </div>
 
-      <div className="px-4 mb-4">
-        <Link 
+      {/* Bouton nouvel article */}
+      <div className="px-4 pt-5 pb-3">
+        <Link
           to="/admin/articles/create"
-          className="w-full bg-primary text-on-primary py-2 rounded-lg text-sm flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-sm"
+          className="w-full bg-primary hover:bg-primary/90 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 active:scale-95"
         >
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          New Article
+          <PenSquare className="w-4 h-4" />
+          Nouvel article
         </Link>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-1 px-2 overflow-y-auto">
-        {links.map((link) => {
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-0.5">
+        <p className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-white/30">
+          Menu
+        </p>
+        {navLinks.map((link) => {
           const isActive = location.pathname.startsWith(link.path);
           return (
             <Link
               key={link.path}
               to={link.path}
               className={cn(
-                "flex items-center gap-4 px-4 py-2 rounded-lg transition-all duration-200 text-sm",
-                isActive 
-                  ? "bg-primary-fixed/30 text-primary font-semibold" 
-                  : "text-on-surface-variant hover:bg-surface-container-high"
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group relative',
+                isActive
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/50 hover:text-white hover:bg-white/5'
               )}
             >
-              <link.icon className="w-5 h-5" />
-              <span>{link.name}</span>
+              <link.icon className={cn('w-4.5 h-4.5 shrink-0', isActive ? 'text-primary' : '')} />
+              <span className="flex-1">{link.name}</span>
+              {isActive && <ChevronRight className="w-3.5 h-3.5 text-primary" />}
             </Link>
           );
         })}
+
+        <div className="pt-4">
+          <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-white/30">
+            Site public
+          </p>
+          <Link
+            to="/"
+            target="_blank"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <Globe className="w-4.5 h-4.5 shrink-0" />
+            <span>Voir le blog</span>
+          </Link>
+        </div>
       </nav>
 
-      <div className="px-4 mt-auto pt-6 border-t border-outline-variant/30 flex flex-col gap-2">
-        <div className="flex items-center gap-3 p-3 mb-4 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20">
-          <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-primary-container font-bold">
+      {/* Profil utilisateur */}
+      <div className="px-4 pb-6 pt-3 border-t border-white/10">
+        <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 mb-2">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-sm font-bold shrink-0 uppercase shadow">
             {user?.name?.charAt(0) || 'A'}
           </div>
-          <div className="overflow-hidden">
-            <p className="text-sm font-bold truncate">{user?.name || 'Admin User'}</p>
-            <p className="text-xs text-on-surface-variant truncate">{user?.email || 'admin@blogflow.pro'}</p>
+          <div className="overflow-hidden flex-1">
+            <p className="text-sm font-semibold text-white truncate">{user?.name || 'Admin'}</p>
+            <p className="text-xs text-white/40 truncate">{user?.email}</p>
           </div>
         </div>
-
-        <Link to="/help" className="flex items-center gap-4 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high transition-all duration-200 rounded-lg text-sm">
-          <HelpCircle className="w-5 h-5" />
-          <span>Help Center</span>
-        </Link>
-        <button onClick={logout} className="flex flex-row w-full items-center gap-4 text-on-surface-variant px-4 py-2 hover:bg-surface-container-high transition-all duration-200 rounded-lg text-sm">
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
+        >
+          <LogOut className="w-4 h-4 shrink-0" />
+          <span>Déconnexion</span>
         </button>
       </div>
     </aside>
