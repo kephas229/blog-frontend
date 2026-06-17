@@ -32,7 +32,6 @@ export const Home = () => {
     setLoading(true);
     try {
       const { data } = await articleService.getAll(pageNum);
-      // data est directement PaginatedResponse<Article>
       const fetched: Article[] = data.data;
 
       const cats = Array.from(
