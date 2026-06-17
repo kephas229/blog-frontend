@@ -29,15 +29,15 @@ export const Login = () => {
   };
 
   return (
-    <main className="w-full max-w-[440px] px-4 py-10">
-      <div className="bg-surface-container-lowest/95 backdrop-blur-md border border-outline-variant rounded-xl p-10 flex flex-col items-center shadow-soft">
+    <div className="w-full">
+      <div className="bg-surface-container-lowest/95 backdrop-blur-md border border-outline-variant rounded-2xl p-8 flex flex-col items-center shadow-soft">
 
-        <div className="mb-10 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-primary rounded-xl mb-4 shadow-lg">
-            <Edit className="w-8 h-8 text-on-primary" />
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-xl mb-3 shadow-lg">
+            <Edit className="w-6 h-6 text-on-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-on-surface tracking-tight">BlogFlow Pro</h1>
-          <p className="text-on-surface-variant mt-1 text-sm font-medium">Contrôlez votre contenu avec précision</p>
+          <h1 className="text-2xl font-bold text-on-surface tracking-tight">Connexion</h1>
+          <p className="text-on-surface-variant mt-1 text-sm">Accédez à votre espace de rédaction</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
@@ -95,11 +95,11 @@ export const Login = () => {
         </div>
       </div>
 
-      <footer className="mt-8 flex justify-center gap-6 text-xs font-semibold text-on-surface-variant/60">
+      <div className="mt-6 flex justify-center gap-6 text-xs font-semibold text-on-surface-variant/60">
         <Link to="#" className="hover:text-primary transition-colors">Aide</Link>
         <Link to="#" className="hover:text-primary transition-colors">Confidentialité</Link>
         <Link to="#" className="hover:text-primary transition-colors">Conditions</Link>
-      </footer>
-    </main>
+      </div>
+    </div>
   );
 };

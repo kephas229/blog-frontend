@@ -33,15 +33,15 @@ export const Register = () => {
   };
 
   return (
-    <main className="w-full max-w-[440px] px-4 py-10">
-      <div className="bg-surface-container-lowest/95 backdrop-blur-md border border-outline-variant rounded-xl p-10 flex flex-col items-center shadow-soft">
+    <div className="w-full">
+      <div className="bg-surface-container-lowest/95 backdrop-blur-md border border-outline-variant rounded-2xl p-8 flex flex-col items-center shadow-soft">
 
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-xl mb-4 shadow-sm">
+        <div className="mb-6 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-xl mb-3 shadow-sm">
             <Edit className="w-6 h-6 text-on-primary" />
           </div>
           <h1 className="text-2xl font-bold text-on-surface tracking-tight">Créer un compte</h1>
-          <p className="text-on-surface-variant mt-1 text-sm font-medium">Rejoignez BlogFlow Pro</p>
+          <p className="text-on-surface-variant mt-1 text-sm">Rejoignez BlogFlow Pro</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5">
@@ -103,6 +103,6 @@ export const Register = () => {
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 };
