@@ -64,7 +64,7 @@ export const Navbar = () => {
 
         {/* Logo */}
         <Link to="/" className="text-xl font-bold text-primary shrink-0 mr-2">
-          BlogFlow Pro
+          BlogFlow
         </Link>
 
         {/* Barre de recherche — occupe tout l'espace disponible */}

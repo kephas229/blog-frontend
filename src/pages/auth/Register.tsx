@@ -41,7 +41,7 @@ export const Register = () => {
             <Edit className="w-6 h-6 text-on-primary" />
           </div>
           <h1 className="text-2xl font-bold text-on-surface tracking-tight">Créer un compte</h1>
-          <p className="text-on-surface-variant mt-1 text-sm">Rejoignez BlogFlow Pro</p>
+          <p className="text-on-surface-variant mt-1 text-sm">Rejoignez BlogFlow</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-5">

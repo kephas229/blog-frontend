@@ -32,7 +32,7 @@ export const AuthLayout = () => {
         {/* Contenu du panneau gauche */}
         <div className="relative z-10">
           <Link to="/" className="text-2xl font-bold text-white">
-            BlogFlow Pro
+            BlogFlow
           </Link>
         </div>
 
@@ -46,7 +46,7 @@ export const AuthLayout = () => {
             </div>
             <div>
               <p className="text-white font-semibold text-sm">Sophie Marchand</p>
-              <p className="text-white/60 text-xs">Rédactrice en chef, BlogFlow Pro</p>
+              <p className="text-white/60 text-xs">Rédactrice en chef, BlogFlow</p>
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@ export const AuthLayout = () => {
           {/* Logo mobile (visible seulement < lg) */}
           <div className="lg:hidden mb-8 text-center">
             <Link to="/" className="text-2xl font-bold text-primary">
-              BlogFlow Pro
+              BlogFlow
             </Link>
           </div>
           <Outlet />
