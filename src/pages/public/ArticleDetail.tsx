@@ -112,7 +112,7 @@ export const ArticleDetail = () => {
   }
 
   return (
-    <article className="max-w-[720px] mx-auto px-6 py-24">
+    <article className="w-full max-w-[780px] mx-auto px-6 py-16">
       {/* Bouton retour */}
       <button
         onClick={() => navigate(-1)}

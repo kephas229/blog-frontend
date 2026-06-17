@@ -38,10 +38,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(true);
     try {
       const { data } = await authService.login(email, password);
+      // Laravel Sanctum retourne directement { access_token, user, ... }
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setToken(data.access_token);
       setUser(data.user);
+    } catch (err) {
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -60,6 +63,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('user', JSON.stringify(data.user));
       setToken(data.access_token);
       setUser(data.user);
+    } catch (err) {
+      throw err;
     } finally {
       setIsLoading(false);
     }

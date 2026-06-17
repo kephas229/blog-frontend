@@ -50,27 +50,22 @@ export const Login = () => {
             error={errors.email?.message}
           />
 
-          <div className="space-y-1">
-            <div className="flex justify-end px-1">
-              <Link to="#" className="text-xs font-semibold text-primary hover:underline">Oublié ?</Link>
-            </div>
-            <div className="relative">
-              <Input
-                label="Mot de passe"
-                icon={<Lock className="w-5 h-5" />}
-                placeholder="••••••••"
-                type={showPassword ? 'text' : 'password'}
-                {...register('password', { required: 'Mot de passe requis' })}
-                error={errors.password?.message}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface transition-colors mt-3"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
+          <div className="relative">
+            <Input
+              label="Mot de passe"
+              icon={<Lock className="w-5 h-5" />}
+              placeholder="••••••••"
+              type={showPassword ? 'text' : 'password'}
+              {...register('password', { required: 'Mot de passe requis' })}
+              error={errors.password?.message}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface transition-colors mt-3"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
           </div>
 
           {/* Erreur globale (identifiants incorrects) */}

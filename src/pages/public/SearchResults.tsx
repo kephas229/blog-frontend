@@ -43,7 +43,7 @@ export const SearchResults = () => {
       exit={{ opacity: 0 }}
       className="w-full bg-surface-container-lowest min-h-[80vh] py-16"
     >
-      <div className="max-w-container mx-auto px-6">
+      <div className="w-full max-w-[1280px] mx-auto px-6">
         <div className="mb-12">
           <h1 className="text-3xl md:text-4xl font-black text-on-surface tracking-tight mb-4">
             Résultats de recherche

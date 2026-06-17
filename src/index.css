@@ -72,4 +72,23 @@
   body {
     @apply bg-background text-on-surface font-sans antialiased;
   }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer utilities {
+  .max-w-container {
+    max-width: 1280px;
+    width: 100%;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

@@ -9,7 +9,6 @@ export const api = axios.create({
   },
 });
 
-// Injecte automatiquement le token Bearer dans chaque requête
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -18,11 +17,12 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Gestion globale des erreurs 401 (token expiré)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url ?? '';
+    const isAuthRoute = url.includes('/login') || url.includes('/register');
+    if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -45,6 +45,7 @@ export interface Article {
   updated_at: string;
   category?: { id: number; name: string } | null;
   user?: { id: number; name: string } | null;
+  comments?: Comment[];
 }
 
 export interface Comment {
@@ -63,6 +64,7 @@ export interface User {
   email: string;
 }
 
+// Laravel retourne directement l'objet paginé, sans wrapper
 export interface PaginatedResponse<T> {
   data: T[];
   current_page: number;
@@ -85,24 +87,21 @@ export interface DashboardStats {
 // ─── Services Articles ────────────────────────────────────────────────────────
 
 export const articleService = {
-  // Liste paginée avec recherche optionnelle
   getAll: (page = 1, search?: string) => {
     const params: Record<string, string | number> = { page };
     if (search) params.search = search;
+    // Laravel paginate() retourne directement PaginatedResponse, pas de wrapper
     return api.get<PaginatedResponse<Article>>('/articles', { params });
   },
 
-  // Détail d'un article
   getOne: (id: number | string) =>
     api.get<Article>(`/articles/${id}`),
 
-  // Créer un article (multipart pour l'image)
   create: (formData: FormData) =>
     api.post<{ message: string; article: Article }>('/articles', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
 
-  // Modifier un article
   update: (id: number, formData: FormData) => {
     formData.append('_method', 'PUT');
     return api.post<{ message: string; article: Article }>(`/articles/${id}`, formData, {
@@ -110,7 +109,6 @@ export const articleService = {
     });
   },
 
-  // Supprimer un article
   delete: (id: number) =>
     api.delete<{ message: string }>(`/articles/${id}`),
 };
@@ -118,11 +116,13 @@ export const articleService = {
 // ─── Services Commentaires ────────────────────────────────────────────────────
 
 export const commentService = {
-  // Poster un commentaire (route protégée par auth:sanctum)
-  create: (data: { visitor_name: string; visitor_email: string; message: string; article_id: number }) =>
-    api.post<{ message: string; comment: Comment }>('/comments', data),
+  create: (data: {
+    visitor_name: string;
+    visitor_email: string;
+    message: string;
+    article_id: number;
+  }) => api.post<{ message: string; comment: Comment }>('/comments', data),
 
-  // Supprimer un commentaire
   delete: (id: number) =>
     api.delete<{ message: string }>(`/comments/${id}`),
 };
@@ -131,26 +131,27 @@ export const commentService = {
 
 export const authService = {
   login: (email: string, password: string) =>
-    api.post<{ message: string; user: User; access_token: string; token_type: string }>('/login', {
-      email,
-      password,
-    }),
+    api.post<{ message: string; user: User; access_token: string; token_type: string }>(
+      '/login',
+      { email, password }
+    ),
 
-  register: (name: string, email: string, password: string, password_confirmation: string) =>
-    api.post<{ message: string; user: User; access_token: string; token_type: string }>('/register', {
-      name,
-      email,
-      password,
-      password_confirmation,
-    }),
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    password_confirmation: string
+  ) =>
+    api.post<{ message: string; user: User; access_token: string; token_type: string }>(
+      '/register',
+      { name, email, password, password_confirmation }
+    ),
 
-  logout: () =>
-    api.post<{ message: string }>('/logout'),
+  logout: () => api.post<{ message: string }>('/logout'),
 };
 
 // ─── Service Dashboard ────────────────────────────────────────────────────────
 
 export const dashboardService = {
-  getStats: () =>
-    api.get<DashboardStats>('/dashboard'),
+  getStats: () => api.get<DashboardStats>('/dashboard'),
 };

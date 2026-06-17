@@ -28,19 +28,22 @@ export const Home = () => {
     fetchArticles(1);
   }, []);
 
-  const fetchArticles = async (pageNum: number, reset = false) => {
+  const fetchArticles = async (pageNum: number) => {
     setLoading(true);
     try {
       const { data } = await articleService.getAll(pageNum);
-      const fetched = data.data;
+      // data est directement PaginatedResponse<Article>
+      const fetched: Article[] = data.data;
 
-      // Extraire les catégories uniques
       const cats = Array.from(
-        new Set(fetched.map((a) => a.category?.name).filter(Boolean))
+        new Set(fetched.map((a: Article) => a.category?.name).filter(Boolean))
       ) as string[];
-      setCategories(['Tout', ...cats]);
+      setCategories((prev) => {
+        const merged = Array.from(new Set(['Tout', ...prev.slice(1), ...cats]));
+        return merged;
+      });
 
-      setArticles((prev) => (reset || pageNum === 1 ? fetched : [...prev, ...fetched]));
+      setArticles((prev) => (pageNum === 1 ? fetched : [...prev, ...fetched]));
       setHasMore(data.current_page < data.last_page);
       setPage(data.current_page);
     } catch (err) {
@@ -70,7 +73,7 @@ export const Home = () => {
     >
       {/* Catégories */}
       <div className="bg-surface-container-lowest border-b border-outline-variant/30 pt-6 sticky top-16 z-30">
-        <div className="max-w-container mx-auto px-6 overflow-x-auto no-scrollbar">
+        <div className="w-full max-w-[1280px] mx-auto px-6 overflow-x-auto no-scrollbar">
           <ul className="flex items-center gap-10 text-[15px] font-semibold text-on-surface whitespace-nowrap">
             {categories.map((cat, idx) => (
               <li
@@ -93,7 +96,7 @@ export const Home = () => {
         </div>
       </div>
 
-      <div className="max-w-container mx-auto px-6 py-16">
+      <div className="w-full max-w-[1280px] mx-auto px-6 py-16">
         {/* Skeleton chargement initial */}
         {loading && articles.length === 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
