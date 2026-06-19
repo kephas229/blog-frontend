@@ -9,6 +9,8 @@ export const Navbar = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { isAuthenticated, user, logout } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const adminHome = isAdmin ? '/admin/dashboard' : '/admin/articles';
 
   // Initialise avec le query param actuel si on est sur /search
   const [searchQuery, setSearchQuery] = useState(() =>
@@ -97,10 +99,10 @@ export const Navbar = () => {
           {isAuthenticated ? (
             <>
               <Link
-                to="/admin/dashboard"
+                to={adminHome}
                 className="hidden sm:block text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors px-3 py-2"
               >
-                Admin
+                {isAdmin ? 'Admin' : 'Mon espace'}
               </Link>
               <button
                 onClick={logout}

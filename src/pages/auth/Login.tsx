@@ -19,8 +19,8 @@ export const Login = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data.email, data.password);
-      navigate('/admin/dashboard');
+      const role = await login(data.email, data.password);
+      navigate(role === 'admin' ? '/admin/dashboard' : '/admin/articles');
     } catch (err: any) {
       const message =
         err?.response?.data?.message || 'Identifiants incorrects. Vérifiez vos informations.';

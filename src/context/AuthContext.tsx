@@ -4,10 +4,12 @@ import { authService, type User } from '../services/api';
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<'admin' | 'author'>;
   register: (name: string, email: string, password: string, password_confirmation: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isAuthor: boolean;
   isLoading: boolean;
 }
 
@@ -34,15 +36,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<'admin' | 'author'> => {
     setIsLoading(true);
     try {
       const { data } = await authService.login(email, password);
-      // Laravel Sanctum retourne directement { access_token, user, ... }
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
       setToken(data.access_token);
       setUser(data.user);
+      return data.user.role;
     } catch (err) {
       throw err;
     } finally {
@@ -92,6 +94,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         register,
         logout,
         isAuthenticated: !!token,
+        isAdmin:   user?.role === 'admin',
+        isAuthor:  user?.role === 'author',
         isLoading,
       }}
     >

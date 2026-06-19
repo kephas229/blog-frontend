@@ -62,6 +62,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  role: 'admin' | 'author';
 }
 
 // Laravel retourne directement l'objet paginé, sans wrapper
@@ -154,4 +155,21 @@ export const authService = {
 
 export const dashboardService = {
   getStats: () => api.get<DashboardStats>('/dashboard'),
+};
+
+// ─── Service Utilisateurs ─────────────────────────────────────────────────────
+
+export interface UserWithStats extends User {
+  articles_count: number;
+  created_at: string;
+}
+
+export const userService = {
+  getMe:          () => api.get<User>('/me'),
+  updateProfile:  (data: { name?: string; email?: string; password?: string; password_confirmation?: string }) =>
+                    api.put<{ message: string; user: User }>('/me', data),
+  getAll:         () => api.get<UserWithStats[]>('/users'),
+  updateRole:     (id: number, role: 'admin' | 'author') =>
+                    api.patch<{ message: string; user: User }>(`/users/${id}/role`, { role }),
+  delete:         (id: number) => api.delete<{ message: string }>(`/users/${id}`),
 };

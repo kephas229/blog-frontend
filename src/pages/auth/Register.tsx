@@ -22,7 +22,7 @@ export const Register = () => {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       await registerUser(data.name, data.email, data.password, data.confirmPassword);
-      navigate('/admin/dashboard');
+      navigate('/admin/articles');
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||

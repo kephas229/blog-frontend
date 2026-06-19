@@ -1,23 +1,31 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, TrendingUp, MessageSquare,
-  Settings, LogOut, PenSquare, ChevronRight, Globe
+  Settings, LogOut, PenSquare, ChevronRight, Globe, Users, UserCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
 
-const navLinks = [
-  { name: 'Tableau de bord', path: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Articles',        path: '/admin/articles',  icon: FileText },
-  { name: 'Commentaires',    path: '/admin/comments',  icon: MessageSquare },
-  { name: 'Analytiques',     path: '/admin/analytics', icon: TrendingUp },
-  { name: 'Paramètres',      path: '/admin/settings',  icon: Settings },
-];
-
 export const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
+
+  const adminLinks = [
+    { name: 'Tableau de bord', path: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Articles',        path: '/admin/articles',  icon: FileText },
+    { name: 'Commentaires',    path: '/admin/comments',  icon: MessageSquare },
+    { name: 'Utilisateurs',    path: '/admin/users',     icon: Users },
+    { name: 'Analytiques',     path: '/admin/analytics', icon: TrendingUp },
+    { name: 'Paramètres',      path: '/admin/settings',  icon: Settings },
+  ];
+
+  const authorLinks = [
+    { name: 'Mes articles',    path: '/admin/articles',  icon: FileText },
+    { name: 'Mon profil',      path: '/admin/profile',   icon: UserCircle },
+  ];
+
+  const links = isAdmin ? adminLinks : authorLinks;
 
   const handleLogout = async () => {
     await logout();
@@ -35,7 +43,9 @@ export const Sidebar = () => {
           </div>
           <span className="text-lg font-bold tracking-tight">BlogFlow</span>
         </Link>
-        <p className="text-xs text-white/40 mt-1 ml-[42px]">Espace administration</p>
+        <p className="text-xs text-white/40 mt-1 ml-[42px]">
+          {isAdmin ? 'Administration' : 'Espace rédacteur'}
+        </p>
       </div>
 
       {/* Bouton nouvel article */}
@@ -54,7 +64,7 @@ export const Sidebar = () => {
         <p className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-white/30">
           Menu
         </p>
-        {navLinks.map((link) => {
+        {links.map((link) => {
           const isActive = location.pathname.startsWith(link.path);
           return (
             <Link
@@ -67,7 +77,7 @@ export const Sidebar = () => {
                   : 'text-white/50 hover:text-white hover:bg-white/5'
               )}
             >
-              <link.icon className={cn('w-4.5 h-4.5 shrink-0', isActive ? 'text-primary' : '')} />
+              <link.icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-primary' : '')} />
               <span className="flex-1">{link.name}</span>
               {isActive && <ChevronRight className="w-3.5 h-3.5 text-primary" />}
             </Link>
@@ -80,10 +90,9 @@ export const Sidebar = () => {
           </p>
           <Link
             to="/"
-            target="_blank"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-white hover:bg-white/5 transition-all"
           >
-            <Globe className="w-4.5 h-4.5 shrink-0" />
+            <Globe className="w-4 h-4 shrink-0" />
             <span>Voir le blog</span>
           </Link>
         </div>
@@ -93,11 +102,13 @@ export const Sidebar = () => {
       <div className="px-4 pb-6 pt-3 border-t border-white/10">
         <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/5 mb-2">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-sm font-bold shrink-0 uppercase shadow">
-            {user?.name?.charAt(0) || 'A'}
+            {user?.name?.charAt(0) || 'U'}
           </div>
           <div className="overflow-hidden flex-1">
-            <p className="text-sm font-semibold text-white truncate">{user?.name || 'Admin'}</p>
-            <p className="text-xs text-white/40 truncate">{user?.email}</p>
+            <p className="text-sm font-semibold text-white truncate">{user?.name || 'Utilisateur'}</p>
+            <p className="text-xs text-white/40 capitalize">
+              {user?.role === 'admin' ? '🔑 Administrateur' : '✏️ Auteur'}
+            </p>
           </div>
         </div>
         <button
