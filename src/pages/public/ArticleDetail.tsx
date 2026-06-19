@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MessageSquare, Send, ArrowLeft, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { articleService, commentService, type Article, type Comment } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('fr-FR', {
@@ -35,7 +34,6 @@ interface CommentFormData {
 export const ArticleDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
 
   const [article, setArticle] = useState<Article | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -189,76 +187,65 @@ export const ArticleDetail = () => {
           <p className="text-on-surface-variant text-sm mb-12">Soyez le premier à commenter.</p>
         )}
 
-        {/* Formulaire commentaire — nécessite d'être connecté */}
-        {isAuthenticated ? (
-          <div className="bg-surface-container-high p-8 rounded-xl">
-            <h4 className="text-lg font-bold mb-6">Laissez un commentaire</h4>
+        {/* Formulaire commentaire — accessible à tous les visiteurs */}
+        <div className="bg-surface-container-high p-8 rounded-xl">
+          <h4 className="text-lg font-bold mb-6">Laissez un commentaire</h4>
 
-            {commentSuccess && (
-              <p className="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 mb-4">
-                Commentaire publié avec succès !
-              </p>
-            )}
-            {errors.root && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
-                {errors.root.message}
-              </p>
-            )}
-
-            <form onSubmit={handleSubmit(onCommentSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-1">
-                <input
-                  type="text"
-                  placeholder="Nom complet"
-                  className="bg-surface border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none text-sm"
-                  {...register('visitor_name', { required: true })}
-                />
-                {errors.visitor_name && <span className="text-xs text-red-500">Champ requis</span>}
-              </div>
-              <div className="flex flex-col gap-1">
-                <input
-                  type="email"
-                  placeholder="Adresse email"
-                  className="bg-surface border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none text-sm"
-                  {...register('visitor_email', { required: true })}
-                />
-                {errors.visitor_email && <span className="text-xs text-red-500">Champ requis</span>}
-              </div>
-              <div className="md:col-span-2 flex flex-col gap-1">
-                <textarea
-                  placeholder="Votre commentaire..."
-                  rows={4}
-                  className="bg-surface border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none text-sm resize-none"
-                  {...register('message', { required: true })}
-                />
-                {errors.message && <span className="text-xs text-red-500">Champ requis</span>}
-              </div>
-              <button
-                type="submit"
-                disabled={commentLoading}
-                className="md:col-span-2 bg-primary text-on-primary px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all disabled:opacity-60"
-              >
-                {commentLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    Publier le commentaire
-                    <Send className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div className="bg-surface-container-high p-8 rounded-xl text-center">
-            <p className="text-on-surface-variant text-sm mb-4">
-              Vous devez être connecté pour laisser un commentaire.
+          {commentSuccess && (
+            <p className="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 mb-4">
+              Commentaire publié avec succès !
             </p>
-            <a href="/login" className="text-primary font-semibold hover:underline text-sm">
-              Se connecter
-            </a>
-          </div>
-        )}
+          )}
+          {errors.root && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
+              {errors.root.message}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit(onCommentSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-1">
+              <input
+                type="text"
+                placeholder="Nom complet"
+                className="bg-surface border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none text-sm"
+                {...register('visitor_name', { required: true })}
+              />
+              {errors.visitor_name && <span className="text-xs text-red-500">Champ requis</span>}
+            </div>
+            <div className="flex flex-col gap-1">
+              <input
+                type="email"
+                placeholder="Adresse email"
+                className="bg-surface border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none text-sm"
+                {...register('visitor_email', { required: true })}
+              />
+              {errors.visitor_email && <span className="text-xs text-red-500">Champ requis</span>}
+            </div>
+            <div className="md:col-span-2 flex flex-col gap-1">
+              <textarea
+                placeholder="Votre commentaire..."
+                rows={4}
+                className="bg-surface border border-outline-variant rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none text-sm resize-none"
+                {...register('message', { required: true })}
+              />
+              {errors.message && <span className="text-xs text-red-500">Champ requis</span>}
+            </div>
+            <button
+              type="submit"
+              disabled={commentLoading}
+              className="md:col-span-2 bg-primary text-on-primary px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all disabled:opacity-60"
+            >
+              {commentLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  Publier le commentaire
+                  <Send className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
       </section>
     </article>
   );
